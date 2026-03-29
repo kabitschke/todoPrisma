@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
 
@@ -13,6 +13,7 @@ export default function Home() {
   const [texto, setTexto] = useState('');
   const [list, setList] = useState<Todo[]>([]);
   const [indice, setIndice] = useState<number | null>(null);
+  const [todos, setTodos] = useState([]);
 
 
 
@@ -38,47 +39,28 @@ export default function Home() {
     setTexto('')
   }
 
+  async function loadTodos() {
+    const res = await fetch('/api/todos')
+    const data = await res.json()
+    setTodos(data)
+  }
 
-  const handleAdd = () => {
-
-    if (texto.trim() === '') return;
-
-
-
-    if (indice !== null) {
-      const up = list.map((el, key) => (
-        key === indice ? { ...el, label: texto, checked: false } : el)
-      );
-
-
-
-      setList(up);
-      setTexto('');
-      setIndice(null);
-    } else {
-      setList([...list, { label: texto, checked: false }]);
-      setTexto('');
-
+  useEffect(() => {
+    async function loadTodos() {
+      const res = await fetch('/api/todos')
+      const data = await res.json()
+      setTodos(data)
     }
 
+    loadTodos()
+  }, [])
 
-  }
 
-  const handleDell = (index: number) => {
 
-    if (confirm('Deseja excluir?') === true) {
 
-      const up = list.filter((el, key) => key !== index);
-      setList(up);
-    }
 
-  }
 
-  const handleAlter = (index: number) => {
-    setIndice(index);
-    setTexto(list[index].label);
 
-  }
 
 
   const toggleItem = (index: number) => {
@@ -114,22 +96,29 @@ export default function Home() {
 
       <div className="max-w-3xl w-full mt-4">
         {
-          list.map((el, key) =>
-            <div key={key} className="text-white flex justify-between items-center bg-[#333] mt-4 rounded-md">
-              <div className={`mt-4 ml-2 ${el.checked === true ? 'line-through' : ''}`}>
-                <input type="checkbox" checked={el.checked} className="w-4 h-4" onChange={() => toggleItem(key)} /> {el.label}</div>
 
-              <div className="">
-                <span className="p-2 bg-yellow-600 rounded-md cursor-pointer mr-2"
-                  onClick={() => handleAlter(key)}>Alterar</span>
 
-                <span className="p-2 bg-red-600 rounded-md cursor-pointer mr-2"
-                  onClick={() => handleDell(key)}>Deletar</span>
+          <div>
+            {todos.map((todo: any) => (
+              <p key={todo.id}>{todo.title}</p>
+            ))}
+          </div>
+          // list.map((el, key) =>
+          //   <div key={key} className="text-white flex justify-between items-center bg-[#333] mt-4 rounded-md">
+          //     <div className={`mt-4 ml-2 ${el.checked === true ? 'line-through' : ''}`}>
+          //       <input type="checkbox" checked={el.checked} className="w-4 h-4" onChange={() => toggleItem(key)} /> {el.label}</div>
 
-              </div>
+          //     <div className="">
+          //       <span className="p-2 bg-yellow-600 rounded-md cursor-pointer mr-2"
+          //         onClick={() => handleAlter(key)}>Alterar</span>
 
-            </div>
-          )
+          //       <span className="p-2 bg-red-600 rounded-md cursor-pointer mr-2"
+          //         onClick={() => handleDell(key)}>Deletar</span>
+
+          //     </div>
+
+          //   </div>
+          // )
         }
       </div>
     </div>

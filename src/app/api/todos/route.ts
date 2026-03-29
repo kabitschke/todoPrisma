@@ -11,3 +11,13 @@ export async function POST(req: Request) {
 
   return NextResponse.json(todo)
 }
+
+export async function GET() {
+  const todos = await prisma.todo.findMany({
+    orderBy: {
+      id: 'desc'
+    }
+  })
+
+  return Response.json(todos)
+}
