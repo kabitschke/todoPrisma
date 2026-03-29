@@ -14,12 +14,28 @@ export default function Home() {
   const [list, setList] = useState<Todo[]>([]);
   const [indice, setIndice] = useState<number | null>(null);
 
-  const handleEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+
+
+  function handleEnter(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') {
-      handleAdd();
-
+      handleAddTodo()
     }
+  }
 
+  async function handleAddTodo() {
+    if (!texto) return
+
+    await fetch('/api/todos', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        title: texto
+      })
+    })
+
+    setTexto('')
   }
 
 
@@ -87,13 +103,12 @@ export default function Home() {
           placeholder="O que deseja fazer?"
           value={texto}
           onKeyDown={handleEnter}
-          onChange={e => setTexto(e.target.value)
+          onChange={e => setTexto(e.target.value)}
 
-          }
         />
 
         <button className="bg-[#222] hover:bg-[#111] text-white px-4 py-2 rounded-md"
-          onClick={handleAdd}
+          onClick={handleAddTodo}
         >{`${indice !== null ? 'Editar' : 'Adicionar'}`}</button>
       </div>
 
