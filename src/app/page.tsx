@@ -13,12 +13,47 @@ export default function Home() {
 
   const [texto, setTexto] = useState('');
   const [todos, setTodos] = useState<TodoDB[]>([]);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [editText, setEditText] = useState('');
+  const [isSaving, setIsSaving] = useState(false)
 
   function handleEnter(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') {
       handleAddTodo()
     }
   }
+
+  function startEdit(todo: TodoDB) {
+  setEditId(todo.id)
+  setEditText(todo.title)
+}
+  
+async function saveEdit() {
+  if (!editText || isSaving) return
+
+  setIsSaving(true)
+
+  await fetch(`/api/todos/${editId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      title: editText
+    })
+  })
+
+  setEditId(null)
+  setEditText('')
+  setIsSaving(false)
+  loadTodos()
+}
+
+function handleEditEnter(e: React.KeyboardEvent<HTMLInputElement>) {
+  if (e.key === 'Enter') {
+    saveEdit()
+  }
+}
 
   async function handleAddTodo() {
     if (!texto) return
@@ -57,6 +92,8 @@ export default function Home() {
           placeholder="O que deseja fazer?"
           value={texto}
           onKeyDown={handleEnter}
+          onBlur={saveEdit}
+          autoFocus
           onChange={e => setTexto(e.target.value)}
         />
 
@@ -74,9 +111,22 @@ export default function Home() {
             key={todo.id}
             className="text-white flex justify-between items-center bg-[#333] mt-4 p-4 rounded-md"
           >
-            <span className={todo.completed ? 'line-through' : ''}>
-              {todo.title}
-            </span>
+           {editId === todo.id ? (
+  <input
+    className="bg-[#222] text-white p-1 rounded"
+    value={editText}
+    onChange={(e) => setEditText(e.target.value)}
+    onKeyDown={handleEditEnter}
+    autoFocus
+  />
+) : (
+  <span
+    onClick={() => startEdit(todo)}
+    className="cursor-pointer"
+  >
+    {todo.title}
+  </span>
+)}
 
             <input
               type="checkbox"
