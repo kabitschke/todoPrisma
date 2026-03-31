@@ -24,36 +24,50 @@ export default function Home() {
   }
 
   function startEdit(todo: TodoDB) {
-  setEditId(todo.id)
-  setEditText(todo.title)
-}
-  
-async function saveEdit() {
-  if (!editText || isSaving) return
-
-  setIsSaving(true)
-
-  await fetch(`/api/todos/${editId}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      title: editText
-    })
-  })
-
-  setEditId(null)
-  setEditText('')
-  setIsSaving(false)
-  loadTodos()
-}
-
-function handleEditEnter(e: React.KeyboardEvent<HTMLInputElement>) {
-  if (e.key === 'Enter') {
-    saveEdit()
+    setEditId(todo.id)
+    setEditText(todo.title)
   }
-}
+
+  async function toggleTodo(todo: TodoDB) {
+    await fetch(`/api/todos/${todo.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        completed: !todo.completed // 🔥 inverte valor
+      })
+    })
+
+    loadTodos()
+  }
+
+  async function saveEdit() {
+    if (!editText || isSaving) return
+
+    setIsSaving(true)
+
+    await fetch(`/api/todos/${editId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        title: editText
+      })
+    })
+
+    setEditId(null)
+    setEditText('')
+    setIsSaving(false)
+    loadTodos()
+  }
+
+  function handleEditEnter(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') {
+      saveEdit()
+    }
+  }
 
   async function handleAddTodo() {
     if (!texto) return
@@ -84,7 +98,7 @@ function handleEditEnter(e: React.KeyboardEvent<HTMLInputElement>) {
 
   return (
     <div className="w-screen h-screen bg-[#222] flex flex-col items-center">
-      
+
       <div className="max-w-3xl w-full bg-[#333] flex items-center justify-center mt-8 p-8 rounded-md">
         <input
           type="text"
@@ -111,28 +125,30 @@ function handleEditEnter(e: React.KeyboardEvent<HTMLInputElement>) {
             key={todo.id}
             className="text-white flex justify-between items-center bg-[#333] mt-4 p-4 rounded-md"
           >
-           {editId === todo.id ? (
-  <input
-    className="bg-[#222] text-white p-1 rounded"
-    value={editText}
-    onChange={(e) => setEditText(e.target.value)}
-    onKeyDown={handleEditEnter}
-    autoFocus
-  />
-) : (
-  <span
-    onClick={() => startEdit(todo)}
-    className="cursor-pointer"
-  >
-    {todo.title}
-  </span>
-)}
+            {editId === todo.id ? (
+              <input
+                className="bg-[#222] text-white p-1 rounded"
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                onKeyDown={handleEditEnter}
+                autoFocus
+              />
+            ) : (
+              <span
+                onClick={() => startEdit(todo)}
+                className={todo.completed ? 'line-through opacity-50' : ''}
+              >
+                {todo.title}
+              </span>
+            )}
 
             <input
               type="checkbox"
               checked={todo.completed}
+              onChange={() => toggleTodo(todo)}
               readOnly
             />
+
           </div>
         ))}
       </div>
