@@ -30,3 +30,18 @@ export async function PATCH(
 
   return Response.json(updatedTodo)
 }
+
+export async function DELETE(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params
+
+  await prisma.todo.delete({
+    where: {
+      id: Number(id)
+    }
+  })
+
+  return Response.json({ ok: true })
+}

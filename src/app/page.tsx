@@ -24,8 +24,8 @@ export default function Home() {
   }
 
   function startEdit(todo: TodoDB) {
-    setEditId(todo.id)
-    setEditText(todo.title)
+    setTexto(todo.title)  // 🔥 joga no input principal
+    setEditId(todo.id)    // 🔥 define que está editando
   }
 
   async function toggleTodo(todo: TodoDB) {
@@ -41,6 +41,19 @@ export default function Home() {
 
     loadTodos()
   }
+
+  async function handleDelete(id: number) {
+    const confirmDelete = confirm('Tem certeza que deseja excluir?')
+
+    if (!confirmDelete) return
+
+    await fetch(`/api/todos/${id}`, {
+      method: 'DELETE'
+    })
+
+    loadTodos()
+  }
+
 
   async function saveEdit() {
     if (!editText || isSaving) return
@@ -67,6 +80,40 @@ export default function Home() {
     if (e.key === 'Enter') {
       saveEdit()
     }
+  }
+
+  async function handleAddOrEdit() {
+    if (!texto) return
+
+    // 🔥 EDITANDO
+    if (editId) {
+      await fetch(`/api/todos/${editId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: texto
+        })
+      })
+
+      setEditId(null) // sai do modo edição
+    }
+    // 🔥 ADICIONANDO
+    else {
+      await fetch('/api/todos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          title: texto
+        })
+      })
+    }
+
+    setTexto('')
+    loadTodos()
   }
 
   async function handleAddTodo() {
@@ -112,10 +159,10 @@ export default function Home() {
         />
 
         <button
-          className="bg-[#222] hover:bg-[#111] text-white px-4 py-2 rounded-md"
-          onClick={handleAddTodo}
+          className="bg-[#222] hover:bg-[#111] text-white px-4 py-2 rounded-md cursor-pointer"
+          onClick={handleAddOrEdit}
         >
-          Adicionar
+          {`${editId ? 'Editar' : 'Adicionar'}`}
         </button>
       </div>
 
@@ -123,9 +170,9 @@ export default function Home() {
         {todos.map((todo) => (
           <div
             key={todo.id}
-            className="text-white flex justify-between items-center bg-[#333] mt-4 p-4 rounded-md"
+            className="text-white flex justify-between  items-center bg-[#333] mt-4 p-4 rounded-md"
           >
-            {editId === todo.id ? (
+            {/* {editId === todo.id ? (
               <input
                 className="bg-[#222] text-white p-1 rounded"
                 value={editText}
@@ -133,21 +180,45 @@ export default function Home() {
                 onKeyDown={handleEditEnter}
                 autoFocus
               />
-            ) : (
-              <span
-                onClick={() => startEdit(todo)}
-                className={todo.completed ? 'line-through opacity-50' : ''}
-              >
-                {todo.title}
-              </span>
-            )}
+            ) : ( */}
+            <span
+              // onClick={() => startEdit(todo)}
+              className={todo.completed ? 'line-through opacity-50' : ''}
+            >
+              {todo.title}
+            </span>
+            {/* )} */}
 
-            <input
-              type="checkbox"
-              checked={todo.completed}
-              onChange={() => toggleTodo(todo)}
-              readOnly
-            />
+            <div className="flex gap-2">
+
+              <input
+                type="checkbox"
+                checked={todo.completed}
+                onChange={() => toggleTodo(todo)}
+                readOnly
+                className="cursor-pointer"
+              />
+
+              <button
+                onClick={() => startEdit(todo)}
+                className="cursor-pointer"
+              >
+                ✏️
+              </button>
+
+              <button
+                onClick={() => handleDelete(todo.id)}
+                className="cursor-pointer"
+              >
+                ❌
+              </button>
+
+
+
+
+            </div>
+
+
 
           </div>
         ))}
